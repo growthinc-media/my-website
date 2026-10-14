@@ -1,11 +1,34 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Twitter, Linkedin, Instagram, Facebook, Mail, MapPin } from 'lucide-react';
+import { Twitter, Linkedin, Instagram, Facebook, Mail, MapPin, Loader2, CheckCircle2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { handleNewsletterSubscribe } from '@/app/newsletter/actions';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [subState, setSubState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [subMsg, setSubMsg] = useState('');
+  const formRef = useRef<HTMLFormElement>(null);
+
+  async function onSubscribe(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSubState('loading');
+    setSubMsg('');
+    const formData = new FormData(e.currentTarget);
+    const result = await handleNewsletterSubscribe(formData);
+    if (result.success) {
+      setSubState('success');
+      setSubMsg(result.message);
+      formRef.current?.reset();
+    } else {
+      setSubState('error');
+      setSubMsg(result.message);
+    }
+  }
 
   const navLinks = [
     { href: '/services', label: 'Services' },
@@ -32,7 +55,7 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-12 md:py-16">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-12">
 
-          {/* Brand — Logo + tagline + newsletter */}
+          {/* Brand â€” Logo + tagline + newsletter */}
           <div className="lg:col-span-4">
             {/* Same logo as header */}
             <Link href="/" className="inline-block mb-4">
@@ -63,20 +86,40 @@ const Footer = () => {
             {/* Newsletter */}
             <div className="mt-6">
               <p className="text-sm font-semibold text-gray-700 mb-2">Stay updated with our insights</p>
-              <form className="flex w-full max-w-xs items-center gap-2">
-                <Input
-                  type="email"
-                  placeholder="Your email"
-                  className="flex-1 h-9 text-sm border-gray-200 bg-gray-50 focus:border-blue-400 focus:ring-blue-400/20"
-                />
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="h-9 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 shrink-0"
-                >
-                  Subscribe
-                </Button>
-              </form>
+
+              {subState === 'success' ? (
+                <div className="flex items-center gap-2 text-sm text-green-600 font-medium">
+                  <CheckCircle2 className="h-4 w-4" />
+                  {subMsg}
+                </div>
+              ) : (
+                <form ref={formRef} onSubmit={onSubscribe} className="flex w-full max-w-xs items-center gap-2">
+                  <Input
+                    type="email"
+                    name="email"
+                    placeholder="Your email"
+                    required
+                    disabled={subState === 'loading'}
+                    className="flex-1 h-9 text-sm border-gray-200 bg-gray-50 focus:border-blue-400 focus:ring-blue-400/20"
+                  />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={subState === 'loading'}
+                    className="h-9 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 shrink-0"
+                  >
+                    {subState === 'loading' ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      'Subscribe'
+                    )}
+                  </Button>
+                </form>
+              )}
+
+              {subState === 'error' && (
+                <p className="mt-1.5 text-xs text-red-500">{subMsg}</p>
+              )}
             </div>
           </div>
 
@@ -135,10 +178,10 @@ const Footer = () => {
         {/* Bottom bar */}
         <div className="mt-12 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-gray-400">
-            © {currentYear} Growthincs. All rights reserved.
+            &copy; {currentYear} Growthincs. All rights reserved.
           </p>
           <p className="text-xs text-gray-400">
-            India's Leading Marketing Company
+            India&apos;s Leading Marketing Company
           </p>
         </div>
       </div>
