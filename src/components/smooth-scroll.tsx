@@ -1,71 +1,70 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 /**
- * SmoothScroll — Lenis-based smooth scrolling with device-adaptive intensity.
- *
- * Intensity (lerp):
- *  - Desktop  : 0.08  → buttery smooth
- *  - Tablet   : 0.12  → slightly snappier
- *  - Mobile   : native momentum scroll (Lenis disabled — iOS/Android already have smooth inertia)
+ * SmoothScroll — Lenis-based smooth scrolling.
+ * - Always active in all directions, at all scroll positions
+ * - Desktop: lerp 0.08 (buttery smooth)
+ * - Tablet:  lerp 0.12 (slightly snappier)
+ * - Mobile:  lerp 0.15 (responsive but still smooth)
  */
 export function SmoothScroll({ children }: { children: React.ReactNode }) {
-  const lenisRef = useRef<any>(null);
-
   useEffect(() => {
-    // Detect touch devices (mobile/tablet)
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const isSmallTablet = window.innerWidth < 1024;
+    let lenis: any = null;
 
-    // On mobile, let native scroll handle it (iOS momentum is already great)
-    if (isTouchDevice && window.innerWidth < 768) {
-      // Apply CSS smooth-scroll for anchor links on mobile
-      document.documentElement.style.scrollBehavior = 'smooth';
-      return;
-    }
-
-    // Dynamic import so it's only loaded client-side
     import('lenis').then(({ default: Lenis }) => {
-      const lerp = isTouchDevice && isSmallTablet ? 0.12 : 0.08;
+      const isMobile = window.innerWidth < 768;
+      const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
 
-      const lenis = new Lenis({
+      const lerp = isMobile ? 0.15 : isTablet ? 0.12 : 0.08;
+
+      lenis = new Lenis({
         lerp,
+        // Let Lenis manage its own RAF loop — most reliable
+        autoRaf: true,
+        // Smooth wheel on all devices
         smoothWheel: true,
-        wheelMultiplier: 1.0,
-        touchMultiplier: isTouchDevice ? 1.8 : 1.0,
+        // Touch multiplier for mobile/tablet feel
+        touchMultiplier: isMobile ? 2 : 1.5,
+        // No limit — works in both directions always
         infinite: false,
-        autoRaf: false,
+        // Sync with framer-motion scroll
+        syncTouch: isMobile,
       });
 
-      lenisRef.current = lenis;
-
-      // Expose lenis instance globally for Framer Motion scroll sync
+      // Make globally accessible for debugging
       (window as any).__lenis = lenis;
 
-      let rafId: number;
-      function raf(time: number) {
-        lenis.raf(time);
-        rafId = requestAnimationFrame(raf);
-      }
-      rafId = requestAnimationFrame(raf);
-
       // Handle anchor links
-      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-        anchor.addEventListener('click', (e) => {
+      const handleAnchorClick = (e: Event) => {
+        const anchor = (e.currentTarget as HTMLAnchorElement);
+        const href = anchor.getAttribute('href');
+        if (href?.startsWith('#')) {
           e.preventDefault();
-          const target = document.querySelector((anchor as HTMLAnchorElement).getAttribute('href') || '');
-          if (target) lenis.scrollTo(target as HTMLElement, { offset: -80 });
-        });
+          const target = document.querySelector(href);
+          if (target) lenis.scrollTo(target, { offset: -80, duration: 1.2 });
+        }
+      };
+
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener('click', handleAnchorClick);
       });
 
       return () => {
-        cancelAnimationFrame(rafId);
-        lenis.destroy();
-        lenisRef.current = null;
-        delete (window as any).__lenis;
+        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+          anchor.removeEventListener('click', handleAnchorClick);
+        });
       };
     });
+
+    return () => {
+      if (lenis) {
+        lenis.destroy();
+        lenis = null;
+        delete (window as any).__lenis;
+      }
+    };
   }, []);
 
   return <>{children}</>;
