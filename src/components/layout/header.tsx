@@ -43,17 +43,18 @@ const Header = () => {
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative overflow-hidden rounded-lg">
+          {/* White container so logo is always visible on dark bg */}
+          <div className="relative flex-shrink-0 rounded-lg bg-white p-1.5 shadow-md shadow-black/30 transition-transform duration-300 group-hover:scale-105">
             <Image
               src="/GrothincsNewUpdatedlogosmall.png"
               alt="Growthincs Logo"
-              width={40}
-              height={40}
-              className="h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              width={32}
+              height={32}
+              className="h-8 w-8 object-contain"
               priority
             />
           </div>
-          <span className="hidden md:block font-headline text-xl font-bold text-foreground">
+          <span className="font-headline text-lg font-bold text-foreground hidden sm:block">
             Growthincs
           </span>
         </Link>
@@ -76,7 +77,7 @@ const Header = () => {
                 {link.label}
                 <span
                   className={cn(
-                    'absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-primary transition-all duration-300',
+                    'absolute bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-primary transition-all duration-300',
                     isActive ? 'w-4/5 opacity-100' : 'w-0 opacity-0 group-hover:w-4/5 group-hover:opacity-100'
                   )}
                 />
@@ -85,7 +86,7 @@ const Header = () => {
           })}
         </nav>
 
-        {/* CTA Button */}
+        {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
           <motion.a
             href={calendlyLink}
@@ -103,7 +104,6 @@ const Header = () => {
           >
             <span>Book a Call</span>
             <ArrowUpRight className="h-3.5 w-3.5" />
-            {/* Shimmer effect */}
             <motion.span
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
               initial={{ x: '-100%' }}
@@ -134,7 +134,9 @@ const Header = () => {
             <div className="flex flex-col h-full p-6">
               {/* Mobile Logo */}
               <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3 mb-10">
-                <Image src="/GrothincsNewUpdatedlogosmall.png" alt="Growthincs" width={36} height={36} className="h-9 w-auto" />
+                <div className="rounded-lg bg-white p-1.5 shadow-md">
+                  <Image src="/GrothincsNewUpdatedlogosmall.png" alt="Growthincs" width={28} height={28} className="h-7 w-7 object-contain" />
+                </div>
                 <span className="font-headline text-lg font-bold">Growthincs</span>
               </Link>
 
