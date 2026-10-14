@@ -34,32 +34,27 @@ const Header = () => {
     <header
       className={cn(
         'sticky top-0 z-50 w-full transition-all duration-300',
+        // White header always — shadow deepens on scroll
         scrolled
-          ? 'border-b border-white/10 bg-background/80 backdrop-blur-xl shadow-lg shadow-black/20'
-          : 'border-b border-transparent bg-background/40 backdrop-blur-md'
+          ? 'bg-white shadow-md shadow-black/10 border-b border-gray-100'
+          : 'bg-white border-b border-gray-100'
       )}
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
 
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          {/* White container so logo is always visible on dark bg */}
-          <div className="relative flex-shrink-0 rounded-lg bg-white p-1.5 shadow-md shadow-black/30 transition-transform duration-300 group-hover:scale-105">
-            <Image
-              src="/GrothincsNewUpdatedlogosmall.png"
-              alt="Growthincs Logo"
-              width={32}
-              height={32}
-              className="h-8 w-8 object-contain"
-              priority
-            />
-          </div>
-          <span className="font-headline text-lg font-bold text-foreground hidden sm:block">
-            Growthincs
-          </span>
+        {/* Logo only — no text */}
+        <Link href="/" className="flex items-center group">
+          <Image
+            src="/GrothincsNewUpdatedlogosmall.png"
+            alt="Growthincs"
+            width={120}
+            height={40}
+            className="h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            priority
+          />
         </Link>
 
-        {/* Desktop Navigation */}
+        {/* Desktop Navigation — dark text on white bg */}
         <nav className="hidden md:flex items-center space-x-1">
           {navLinks.map((link) => {
             const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
@@ -70,14 +65,14 @@ const Header = () => {
                 className={cn(
                   'relative px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 group',
                   isActive
-                    ? 'text-primary'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'text-blue-600'
+                    : 'text-gray-600 hover:text-gray-900'
                 )}
               >
                 {link.label}
                 <span
                   className={cn(
-                    'absolute bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-primary transition-all duration-300',
+                    'absolute bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-blue-600 transition-all duration-300',
                     isActive ? 'w-4/5 opacity-100' : 'w-0 opacity-0 group-hover:w-4/5 group-hover:opacity-100'
                   )}
                 />
@@ -87,20 +82,16 @@ const Header = () => {
         </nav>
 
         {/* Desktop CTA */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center">
           <motion.a
             href={calendlyLink}
             target="_blank"
             rel="noopener noreferrer"
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            className={cn(
-              'inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-semibold',
-              'bg-primary text-primary-foreground',
-              'shadow-lg shadow-primary/25 hover:shadow-primary/40',
-              'transition-all duration-300 hover:brightness-110',
-              'relative overflow-hidden'
-            )}
+            className="relative inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-semibold overflow-hidden
+              bg-blue-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40
+              transition-all duration-300 hover:bg-blue-700"
           >
             <span>Book a Call</span>
             <ArrowUpRight className="h-3.5 w-3.5" />
@@ -116,7 +107,7 @@ const Header = () => {
         {/* Mobile Menu */}
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" className="h-9 w-9">
+            <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-700 hover:bg-gray-100">
               <AnimatePresence mode="wait" initial={false}>
                 {isOpen ? (
                   <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
@@ -130,14 +121,18 @@ const Header = () => {
               </AnimatePresence>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-full max-w-xs border-l border-white/10 bg-background/95 backdrop-blur-xl p-0">
+
+          <SheetContent side="right" className="w-full max-w-xs border-l border-gray-100 bg-white p-0">
             <div className="flex flex-col h-full p-6">
               {/* Mobile Logo */}
-              <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3 mb-10">
-                <div className="rounded-lg bg-white p-1.5 shadow-md">
-                  <Image src="/GrothincsNewUpdatedlogosmall.png" alt="Growthincs" width={28} height={28} className="h-7 w-7 object-contain" />
-                </div>
-                <span className="font-headline text-lg font-bold">Growthincs</span>
+              <Link href="/" onClick={() => setIsOpen(false)} className="mb-10">
+                <Image
+                  src="/GrothincsNewUpdatedlogosmall.png"
+                  alt="Growthincs"
+                  width={120}
+                  height={36}
+                  className="h-9 w-auto object-contain"
+                />
               </Link>
 
               {/* Mobile Nav Links */}
@@ -157,12 +152,12 @@ const Header = () => {
                         className={cn(
                           'flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium transition-all duration-200',
                           isActive
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                            ? 'bg-blue-50 text-blue-600'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         )}
                       >
                         {link.label}
-                        <ArrowUpRight className="h-4 w-4 opacity-50" />
+                        <ArrowUpRight className="h-4 w-4 opacity-40" />
                       </Link>
                     </motion.div>
                   );
@@ -176,7 +171,7 @@ const Header = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full bg-primary text-primary-foreground font-semibold shadow-lg shadow-primary/30 hover:brightness-110 transition-all duration-200"
+                  className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full bg-blue-600 text-white font-semibold shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition-all duration-200"
                 >
                   Book a Free Call
                   <ArrowUpRight className="h-4 w-4" />
