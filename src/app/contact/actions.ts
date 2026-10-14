@@ -15,12 +15,22 @@ const formSchema = z.object({
 export type ContactFormInput = z.infer<typeof formSchema>;
 
 async function appendToGoogleSheet(data: ContactFormInput) {
+  const sheetId = process.env.GOOGLE_SHEET_ID;
+  const serviceEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY;
+
+  if (!sheetId || !serviceEmail || !privateKey) {
+    console.warn('⚠️ Google Sheets env vars not set — skipping sheet append');
+    return;
+  }
+
   try {
+    // Dynamic import so build doesn't fail if package is temporarily missing
     const { google } = await import('googleapis');
 
     const auth = new google.auth.JWT({
-      email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      email: serviceEmail,
+      key: privateKey.replace(/\\n/g, '\n'),
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
@@ -33,8 +43,8 @@ async function appendToGoogleSheet(data: ContactFormInput) {
     });
 
     await sheets.spreadsheets.values.append({
-      spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: 'Sheet1!A:H',
+      spreadsheetId: sheetId,
+      range: 'Sheet1!A:G',
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [[
@@ -51,7 +61,7 @@ async function appendToGoogleSheet(data: ContactFormInput) {
 
     console.log('✅ Contact form data saved to Google Sheet');
   } catch (error) {
-    // Non-blocking: log but don't fail the whole submission
+    // Non-blocking — log but don't fail the form submission
     console.error('⚠️ Failed to append to Google Sheet (non-blocking):', error);
   }
 }
@@ -91,7 +101,7 @@ export async function handleContactForm(
       `,
     });
 
-    // 2. Append to Google Sheet (non-blocking — runs after email)
+    // 2. Append to Google Sheet (non-blocking)
     await appendToGoogleSheet(validatedInput.data);
 
     return {
